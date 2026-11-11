@@ -211,11 +211,16 @@ export default function Home() {
           </div>
         </div>
 
-        <p className="mt-10 max-w-2xl text-sm text-muted">
-          About your text: ways 2 and 3 send it to this server, which changes it in memory and
-          sends it back. It is not stored or logged. To keep it on your own machine, run the same
-          server locally. The README shows how.
-        </p>
+        <div role="note" className="mt-10 max-w-2xl rounded-lg border border-line bg-surface p-4">
+          <h3 className="font-medium">Do not send confidential text through ways 2 and 3</h3>
+          <p className="mt-2 text-muted">
+            The MCP server and the skill send your text to this server. We do not read, save or
+            log it: the server changes it in memory and sends it straight back. It still leaves
+            your machine, so keep passwords, private data and anything under an NDA out of it. For
+            that kind of text, use this page, which runs in your browser, or run the server
+            locally. The README shows how.
+          </p>
+        </div>
       </section>
     </main>
   );

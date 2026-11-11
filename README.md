@@ -48,7 +48,7 @@ The skill file lives in [public/humanize-typing/SKILL.md](public/humanize-typing
 ## Where your text goes
 
 - **Web page:** nowhere. The function runs in your browser.
-- **Hosted MCP server:** your text is sent to the server, changed in memory and sent back. The code does not store or log it.
+- **Hosted MCP server and the skill:** your text is sent to the server, changed in memory and sent back. The code does not read, store or log it. It still leaves your machine, so do not send confidential text this way. The skill asks before sending anything that looks confidential.
 - **Local MCP server:** nowhere. Run the same server on your own machine instead:
 
 ```bash

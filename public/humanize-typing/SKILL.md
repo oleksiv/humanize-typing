@@ -27,6 +27,8 @@ Step 2 needs regular text to work on, so also:
 
 ## Step 2: add the slips (MCP tool)
 
+The tool sends the text to the humanize-typing server. The server does not read, save or log it, but the text does leave the user's machine. If the text holds anything confidential (passwords, keys, personal, medical or financial details, or anything the user called private), do not call the tool yet. Tell the user the text would go through that server and ask whether to send it. Skip this check if the user has said the server runs locally.
+
 Call the `humanize_typing` tool of the humanize-typing MCP server with your rewrite as `text`.
 
 Pick the `style` that fits where the text is going:

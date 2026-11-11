@@ -1,0 +1,11 @@
+{
+ "page": null,
+ "url": "http://localhost:3000/",
+ "root": null,
+ "kind": "software",
+ "category": "text humanizer that adds typing slips",
+ "primary": "Humanize your text",
+ "rounds": 3,
+ "start": "2026-11-11T10:56:31.435Z",
+ "by": "gate.mjs --start"
+}
