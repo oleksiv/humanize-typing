@@ -1,9 +1,16 @@
-import { humanize, PRESETS } from "@/lib/humanize";
+import { humanize, PRESETS, type PresetName } from "@/lib/humanize";
 import { primary } from "./buttons";
 import { Command, Humanizer } from "./tool";
 
-const SAMPLE =
-  "I will send you the full report tomorrow, because I still need to clean up the screenshots. Let me know if you want to jump on a quick call this week.";
+// the text each style opens with, written the clean way an assistant would draft it
+const SAMPLES: Record<PresetName, string> = {
+  message:
+    "I will send you the full report tomorrow, because I still need to clean up the screenshots. Let me know if you want to jump on a quick call this week.",
+  text: "Hey, are you still coming tonight? I am running about ten minutes late, so do not wait for me outside. I will text you when I am close.",
+  post: "I have been testing three design tools this week, and honestly the results were very different. Here is what I learned, and what I would do again.",
+  email:
+    "Thank you for the update. I have reviewed the proposal and I do not have any major concerns. I will send my comments by Friday so we can finalize it.",
+};
 
 // one run in the chat style; slips never touch whitespace, so before and after line up token by token
 function run(text: string, seed: number) {
@@ -15,16 +22,15 @@ function run(text: string, seed: number) {
 
 // real output, measured when the page is built: nothing on it is made up
 const RUNS = 1000;
-const counts = Array.from({ length: RUNS }, (_, i) => run(SAMPLE, i + 1).slips);
+const counts = Array.from({ length: RUNS }, (_, i) => run(SAMPLES.message, i + 1).slips);
 const share = (keep: (n: number) => boolean) => Math.round((counts.filter(keep).length / RUNS) * 100);
 const figures = [
   { value: `${share((n) => n === 0)}%`, label: "come back with no slips" },
   { value: `${share((n) => n > 0 && n < 5)}%`, label: "have one to four" },
   { value: `${share((n) => n >= 5)}%`, label: "have five or more" },
 ];
-// runs per slip count, from 0 up to the most slips any run had
-const bins = Array.from({ length: Math.max(...counts) + 1 }, (_, k) => counts.filter((n) => n === k).length);
-const tallest = Math.max(...bins);
+// six runs in a row of the chat sample (seeds 4 to 9), shown as they came out
+const runs = [4, 5, 6, 7, 8, 9].map((seed) => run(SAMPLES.message, seed));
 
 // hint: the comment line above the command in the terminal
 const setups = [
@@ -154,7 +160,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="mt-5 flex min-h-0 flex-auto motion-safe:animate-rise [animation-delay:200ms] lg:mt-10">
-                <Humanizer sample={SAMPLE} />
+                <Humanizer samples={SAMPLES} />
               </div>
             </div>
           </div>
@@ -225,34 +231,46 @@ export default function Home() {
                   Real typing is uneven. <span className="text-muted">Some messages are clean, some have five slips.</span>
                 </h2>
                 <p className="mt-6 leading-relaxed lg:text-lg">
-                  Ask a model to add mistakes and it spreads them evenly, one typo per message. Humanize typing
-                  draws a mess level for every run, and one typo makes the next more likely in the same sentence.
+                  Ask a model to add mistakes and it spreads them evenly, one typo per message.
+                  <span className="max-sm:hidden">
+                    {" "}
+                    Humanize typing draws a mess level for every run, and one typo makes the next more likely in
+                    the same sentence.
+                  </span>
                 </p>
-                <dl className="mt-auto grid grid-cols-3 gap-4 pt-8 lg:gap-6 lg:pt-10">
-                  {figures.map((f) => (
-                    <div key={f.label} className="flex flex-col-reverse justify-end">
-                      <dt className="mt-2 leading-snug">{f.label}</dt>
-                      <dd className="font-display text-[30px] leading-none tracking-[-0.03em] tabular-nums lg:text-5xl">{f.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-              <div
-                role="img"
-                aria-label={`Slips per run over ${RUNS} runs of the sample message: ${bins.map((b, k) => `${b} runs with ${k}`).join(", ")}`}
-                className="ui flex flex-col rounded-2xl bg-surface p-6 lg:col-span-6 lg:col-start-7 lg:p-8"
-              >
-                <p className="text-[13px] text-muted">
-                  Slips per run, {RUNS.toLocaleString("en")} runs of the sample message
-                </p>
-                <div className="mt-6 flex min-h-36 flex-auto items-end gap-1.5 lg:gap-2">
-                  {bins.map((b, k) => (
-                    <div key={k} className="flex h-full flex-1 flex-col justify-end gap-2 text-center text-[13px] tabular-nums">
-                      <div className="rounded-t-md bg-ink/80" style={{ height: `${(b / tallest) * 100}%` }} />
-                      <span>{k}</span>
-                    </div>
-                  ))}
+                <div className="mt-auto pt-8 lg:pt-10">
+                  <p className="text-[13px] text-muted">Out of {RUNS.toLocaleString("en")} rolls of that message</p>
+                  <dl className="mt-3 grid grid-cols-3 gap-4 lg:gap-6">
+                    {figures.map((f) => (
+                      <div key={f.label} className="flex flex-col-reverse justify-end">
+                        <dt className="mt-2 leading-snug">{f.label}</dt>
+                        <dd className="font-display text-[30px] leading-none tracking-[-0.03em] tabular-nums lg:text-5xl">{f.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
+              </div>
+              {/* the same message, run again and again: some runs clean, some messy */}
+              <div
+                data-ui="runs"
+                className="ui self-start overflow-hidden rounded-2xl border border-line bg-paper shadow-[0_24px_60px_-32px_rgb(0_0_0/.18)] lg:col-span-6 lg:col-start-7"
+              >
+                <p className="flex h-11 items-center border-b border-line bg-surface px-4 text-[13px] text-muted lg:px-5">
+                  The same message, rolled again and again
+                </p>
+                <ol className="divide-y divide-line">
+                  {runs.map((r, i) => (
+                    // a phone shows three of the six
+                    <li key={i} className={`flex items-start gap-4 px-4 py-3 lg:px-5 lg:py-4 ${[2, 4, 5].includes(i) ? "max-sm:hidden" : ""}`}>
+                      <p className="flex-1 text-[13px] leading-5 lg:text-[15px] lg:leading-6">
+                        {r.after.map((t, j) => (t === r.before[j] ? t : <mark key={j}>{t}</mark>))}
+                      </p>
+                      <span className="shrink-0 rounded-full bg-surface px-2.5 py-0.5 text-[13px] tabular-nums">
+                        {r.slips === 0 ? "Clean" : `${r.slips} ${r.slips === 1 ? "slip" : "slips"}`}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
               </div>
             </div>
           </div>

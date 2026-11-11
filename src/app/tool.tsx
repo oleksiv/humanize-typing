@@ -57,9 +57,15 @@ export function Command({ icon, label, template }: { icon: string; label: string
   );
 }
 
-export function Humanizer({ sample }: { sample: string }) {
-  const [text, setText] = useState(sample);
+export function Humanizer({ samples }: { samples: Record<PresetName, string> }) {
+  const [text, setText] = useState(samples.message);
   const [style, setStyle] = useState<PresetName>("message");
+
+  // each style opens with its own sample; text you typed or pasted is never replaced
+  function pick(name: PresetName) {
+    if (text === samples[style]) setText(samples[name]);
+    setStyle(name);
+  }
   const [seed, setSeed] = useState(4);
   const [random, setRandom] = useState(true);
   const [level, setLevel] = useState(0.4);
@@ -98,7 +104,7 @@ export function Humanizer({ sample }: { sample: string }) {
               <button
                 aria-pressed={style === name}
                 aria-label={PRESETS[name].label}
-                onClick={() => setStyle(name)}
+                onClick={() => pick(name)}
                 className="min-h-11 w-full rounded-lg px-3 text-center transition-colors duration-150 hover:bg-ink/4 aria-pressed:bg-paper aria-pressed:shadow-[0_0_0_1px_var(--color-line)] lg:py-2.5 lg:text-left"
               >
                 <span className="block text-sm font-medium lg:hidden">{SHORT[name]}</span>
