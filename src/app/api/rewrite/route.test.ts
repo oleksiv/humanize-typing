@@ -59,6 +59,7 @@ test("sends the text and style to OpenAI and streams the rewrite back", async ()
   assert.equal(sent!.body.stream, true);
   assert.match(sent!.body.messages[0].content, /quick text to a friend/);
   assert.match(sent!.body.messages[0].content, /Do not add typos/);
+  assert.match(sent!.body.messages[0].content, /Start every sentence with a capital letter/);
   assert.deepEqual(sent!.body.messages[1], { role: "user", content: "I will send it tomorrow." });
 });
 

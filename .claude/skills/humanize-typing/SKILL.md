@@ -16,6 +16,16 @@ Rewrite the text in the user's voice.
 - Keep every fact, name, number, link and commitment exactly.
 - Write it clean. Correct spelling, capitals and punctuation. Do not add any mistakes yourself, not even lowercase starts. Mistakes you add come out evenly spread and look fake.
 
+The script in step 2 needs regular text to work on, so also:
+
+- Start every sentence with a capital letter and end it with a period, question mark or exclamation mark. Write "I" as a capital.
+- Prefer several short sentences to one long one.
+- Plain text only: no markdown, bullet points or headings.
+- Use straight apostrophes and quotes, and keep the apostrophe in contractions.
+- No em dashes, semicolons or ellipses. Use a comma or start a new sentence.
+- Write out abbreviations that contain periods: "for example", not "e.g.".
+- Avoid starting a sentence with a person's or product's name when you can. The script may lowercase it.
+
 ## Step 2: add the slips (script)
 
 Write your rewrite to a temporary file, then run from the project root:

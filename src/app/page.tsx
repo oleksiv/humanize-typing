@@ -1,19 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { humanize, PRESETS, type PresetName, type Rates } from "@/lib/humanize";
+import { humanize, PRESETS, type PresetName } from "@/lib/humanize";
 
 const SAMPLE =
   "Hey, I finally finished the comparison of the design skills. I tested each one on the same landing page prompt, and honestly the results were pretty different. The taste skill produced the cleanest layout, but it struggled with the typography. I think the frontend design skill was the most consistent overall. I will send you the full report tomorrow, because I still need to clean up the screenshots. Let me know if you want to jump on a quick call this week.";
-
-const SLIPS: { key: keyof Rates; label: string; max: number }[] = [
-  { key: "typo", label: "Typos", max: 0.3 },
-  { key: "lowerStart", label: "Lowercase sentence starts", max: 1 },
-  { key: "lowerI", label: "Lowercase i", max: 1 },
-  { key: "dropPeriod", label: "Missing periods", max: 1 },
-  { key: "doubleComma", label: "Double commas", max: 1 },
-  { key: "runOn", label: "Run-on sentences", max: 1 },
-];
 
 const presetNames = Object.keys(PRESETS) as PresetName[];
 const box = "min-h-72 flex-1 rounded-lg border border-line bg-surface p-4 text-base leading-7";
@@ -22,7 +13,8 @@ export default function Home() {
   const [text, setText] = useState(SAMPLE);
   const [samples, setSamples] = useState("");
   const [style, setStyle] = useState<PresetName>("message");
-  const [rates, setRates] = useState<Rates>(PRESETS.message.rates);
+  // one style drives both steps: the AI's tone and how often each slip appears
+  const rates = PRESETS[style].rates;
 
   // step 1: AI rewrite. null until the AI has run on the current text.
   const [rewrite, setRewrite] = useState<string | null>(null);
@@ -100,24 +92,50 @@ export default function Home() {
         numbers add the slips of real typing, which is the part AI is bad at.
       </p>
 
-      <label className="mt-10 flex w-fit items-center gap-3">
-        Style
-        <select
-          value={style}
-          onChange={(e) => {
-            const name = e.target.value as PresetName;
-            setStyle(name);
-            setRates(PRESETS[name].rates);
-          }}
-          className="rounded-lg border border-line bg-surface px-3 py-2"
-        >
-          {presetNames.map((name) => (
-            <option key={name} value={name}>
-              {PRESETS[name].label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+        <label className="flex items-center gap-3">
+          Style
+          <select
+            value={style}
+            onChange={(e) => setStyle(e.target.value as PresetName)}
+            className="rounded-lg border border-line bg-surface px-3 py-2"
+          >
+            {presetNames.map((name) => (
+              <option key={name} value={name}>
+                {PRESETS[name].label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className={`flex items-center gap-3 ${random ? "text-muted" : ""}`}>
+          Mess level
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={random ? result.sloppiness : level}
+            disabled={random}
+            onChange={(e) => setLevel(Number(e.target.value))}
+            className="w-40 accent-action"
+          />
+          <span className="w-10 tabular-nums">{Math.round(result.sloppiness * 100)}%</span>
+        </label>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={random}
+            onChange={(e) => setRandom(e.target.checked)}
+            className="size-4 accent-action"
+          />
+          Random each time
+        </label>
+      </div>
+      <p className="mt-3 text-sm text-muted">
+        The style sets the AI&apos;s tone and which slips appear. The mess level sets how many.
+      </p>
 
       <ol className="mt-6 grid gap-6 lg:grid-cols-3">
         <li className="flex flex-col gap-2">
@@ -210,60 +228,7 @@ export default function Home() {
         </li>
       </ol>
 
-      <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-6">
-        <label className={`flex items-center gap-3 ${random ? "text-muted" : ""}`}>
-          Mess level
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.05}
-            value={random ? result.sloppiness : level}
-            disabled={random}
-            onChange={(e) => setLevel(Number(e.target.value))}
-            className="w-40 accent-action"
-          />
-          <span className="w-10 tabular-nums">{Math.round(result.sloppiness * 100)}%</span>
-        </label>
-
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={random}
-            onChange={(e) => setRandom(e.target.checked)}
-            className="size-4 accent-action"
-          />
-          Random each time
-        </label>
-      </div>
-
-      <details className="mt-6">
-        <summary className="cursor-pointer font-medium">Adjust each kind of slip</summary>
-        <p className="mt-3 max-w-xl text-muted">
-          How often each slip shows up at full mess level. Set one to 0 to switch it off.
-        </p>
-        <div className="mt-5 grid gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SLIPS.map(({ key, label, max }) => (
-            <label key={key} className="flex flex-col gap-1">
-              <span className="flex justify-between">
-                {label}
-                <span className="text-muted tabular-nums">{Math.round(rates[key] * 100)}%</span>
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={max}
-                step={0.01}
-                value={rates[key]}
-                onChange={(e) => setRates({ ...rates, [key]: Number(e.target.value) })}
-                className="accent-action"
-              />
-            </label>
-          ))}
-        </div>
-      </details>
-
-      <details className="mt-4">
+      <details className="mt-8 border-t border-line pt-6">
         <summary className="cursor-pointer font-medium">Make the AI sound like me</summary>
         <label htmlFor="samples" className="mt-3 block max-w-xl text-muted">
           Paste 5 to 10 real messages you have written. The AI copies their style, not their

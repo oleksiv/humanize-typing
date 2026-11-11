@@ -60,7 +60,15 @@ A style sets how often each kind of slip appears. The mess level then scales all
 | `post` | Social posts, comments | Light, mostly clean capitals |
 | `email` | Work email | Capitals always kept, a rare typo or run-on |
 
-On the web page, pick a style from the menu, or open "Adjust each kind of slip" to set every rate yourself. In code, pass your own rates:
+The web page has three settings:
+
+- **Style**: sets the AI's tone and which slips appear.
+- **Mess level**: sets how many slips appear, random each time or fixed.
+- **Voice samples** (optional): real messages of yours for the AI to copy the style of.
+
+The AI is told to write text the function can work on: every sentence starts with a capital and ends with a period, short sentences, plain text, straight quotes, no em dashes, semicolons, ellipses or "e.g."-style abbreviations.
+
+To set each slip's rate yourself, do it in code:
 
 ```ts
 import { humanize, PRESETS } from "./src/lib/humanize";

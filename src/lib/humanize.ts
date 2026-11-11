@@ -75,6 +75,9 @@ function typo(word: string, rnd: () => number) {
 // links, emails, paths, anything with digits
 const PROTECTED = /[@/\\\d]|\.\w/;
 
+// a single closing period, not an ellipsis
+const endsInPeriod = (s: string) => /[^.]\.$/.test(s);
+
 export function humanize(
   text: string,
   { seed, sloppiness, rates: p = PRESETS.message.rates }: Options = {},
@@ -102,9 +105,9 @@ export function humanize(
       const lowerable = /^([A-Z][a-z]|I\b)/.test(sent);
       if (lowerable && rnd() < s * p.lowerStart) sent = sent[0].toLowerCase() + sent.slice(1);
       if (rnd() < s * p.doubleComma) sent = sent.replace(",", ",,");
-      if (sent.endsWith(".") && rnd() < s * p.dropPeriod) sent = sent.slice(0, -1);
+      if (endsInPeriod(sent) && rnd() < s * p.dropPeriod) sent = sent.slice(0, -1);
       // run-on: join to the previous sentence with a comma
-      if (i >= 2 && parts[i - 2].endsWith(".") && lowerable && rnd() < s * p.runOn) {
+      if (i >= 2 && endsInPeriod(parts[i - 2]) && lowerable && rnd() < s * p.runOn) {
         parts[i - 2] = parts[i - 2].slice(0, -1) + ",";
         sent = sent[0].toLowerCase() + sent.slice(1);
       }

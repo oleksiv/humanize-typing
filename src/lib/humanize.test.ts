@@ -61,6 +61,12 @@ test("dropPeriod keeps question and exclamation marks", () => {
   assert.equal(humanize("Really? Yes!", only("dropPeriod")).text, "Really? Yes!");
 });
 
+test("an ellipsis is never cut short or turned into a run-on", () => {
+  const dots = "Wait... Let me check.";
+  assert.equal(humanize(dots, only("dropPeriod")).text, "Wait... Let me check");
+  assert.equal(humanize(dots, only("runOn")).text, dots);
+});
+
 test("doubleComma doubles the first comma of a sentence and nothing else", () => {
   const out = humanize(text, only("doubleComma")).text;
   assert.ok(out.startsWith("Hey,, I finished"));
