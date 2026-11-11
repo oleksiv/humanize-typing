@@ -1,0 +1,268 @@
+{
+ "start": "2026-11-11T11:12:58.320Z",
+ "round": 1,
+ "idle": 0,
+ "errors": 0,
+ "status": "pass",
+ "history": [
+  {
+   "at": "2026-11-11T11:48:50.469Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 1,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-11T11:51:35.119Z",
+   "mode": "manual",
+   "status": "pass",
+   "fails": 0,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-11T11:53:00.272Z",
+   "mode": "hook",
+   "host": "claude",
+   "decision": "allow",
+   "reason": "no build is active here",
+   "stopHookActive": false
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": null,
+  "url": "http://localhost:3100/",
+  "root": null,
+  "kind": "software",
+  "category": "text humanizer that adds typing slips",
+  "primary": "Try it on your text",
+  "rounds": 3,
+  "start": "2026-11-11T11:12:58.320Z",
+  "by": "gate.mjs --start"
+ },
+ "manual": true,
+ "roundKey": "ead93e3371814f1f:d2c0b619",
+ "roundFree": false,
+ "idleFree": false,
+ "blockKey": null,
+ "fp": "62406681613fccbd",
+ "page": "http://localhost:3100/",
+ "found": {
+  "fails": [
+   {
+    "check": "cta",
+    "where": "section#try",
+    "msg": "the hero has no button (the nav's does not count)",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "cta"
+    ],
+    "wheres": [
+     "section#try"
+    ]
+   },
+   {
+    "check": "moment-none",
+    "where": "(the page)",
+    "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+    "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "moment-none"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   }
+  ],
+  "warns": [
+   {
+    "check": "nav",
+    "where": "header.nav.fixed > div.wrap.flex > a.flex.h-11 \"h Humanize typing\"",
+    "msg": "the nav is lopsided: its first item starts 10px inside the content's edge (80px), while its last ends on the other edge",
+    "fix": "start the nav's first item and end its last on the content's two edges",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "text-only",
+    "where": "section#faq \"Questions\"",
+    "msg": "the section is only text: no picture, icon, mock or effect in it",
+    "fix": "give the section a visual: a photograph that fits, the real icons, or a UI fragment on a ground",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-headings",
+    "where": "div:nth-of-type(1) > ol.mt-8.grid > li.grid.gap-2:nth-of-type(4) > h3.text-xl \"Run the server on your machine\"",
+    "msg": "\"Run the server on your machine\" names no product, part, place or section (the one brand line a page may have)",
+    "fix": "name the thing in every heading: the product, a part, the place or a section noun",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#setup / section#faq",
+    "msg": "284px between these sections, +37% against the median 208px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "header.nav.fixed > div.wrap.flex > nav.ml-auto.hidden > a.flex.h-11:nth-of-type(1) \"Tool\"",
+    "msg": "\"Tool\" opens a section headed \"Typing slips for AI-drafted messages\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "header.nav.fixed > div.wrap.flex > nav.ml-auto.hidden > a.flex.h-11:nth-of-type(2) \"Setup\"",
+    "msg": "\"Setup\" opens a section headed \"Works inside Claude. Your assistant writes, the fu\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "header.nav.fixed > div.wrap.flex > nav.ml-auto.hidden > a.flex.h-11:nth-of-type(4) \"Method\"",
+    "msg": "\"Method\" opens a section headed \"Real typing is uneven. Some messages are clean, so\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-length",
+    "where": "section#faq \"Questions\"",
+    "msg": "2 sections over 90 words a screen outside the UI mocks (\"Questions\" 92, \"Works inside Claude. You\" 91); 70 words a screen across the page (279 words in 4 screens): a tech page says it in about 80 or fewer",
+    "fix": "cut every section to its heading, one line and the product UI: the UI says the rest; no second paragraph, no list of feature sentences",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-current",
+    "where": "header.nav.fixed",
+    "msg": "the nav stays on screen with 4 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)",
+    "fix": "mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "skip-link",
+    "where": "header.nav.fixed > div.wrap.flex > a.flex.h-11:nth-of-type(1) \"Humanize typing\"",
+    "msg": "the first Tab stop is \"Humanize typing\", not a skip link: a keyboard user tabs through the whole nav on every visit",
+    "fix": "add the starter's skip link as the header's first child: <a class=\"skip-link\" href=\"#top\">Skip to content</a>",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "share-meta",
+    "where": "head",
+    "msg": "the head lacks og:title, og:description, og:image, twitter:card: a shared link shows no picture or title of its own",
+    "fix": "copy the head block of starter.html: og tags, twitter:card, the icon and theme-color (references/system.md, Head)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "proximity",
+    "where": "section#setup > div.wrap > div.grid.flex-auto > div.ui.overflow-hidden \"Works inside Claude.\"",
+    "msg": "stacked at this width, the visual starts 23px under the text and buttons above it (\"Works inside Claude.\"): it reads glued to them",
+    "fix": "give the stacked split the section's own gap between text and visual (40px or more on a phone)",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-two-fragment",
+    "msg": "two-fragment headings \"X. Y.\": 2, budget 1",
+    "fix": "spend it once where it lands hardest; give the other headings a plain label, a claim or the thing they name (references/copy-tells.md)",
+    "widths": [],
+    "from": "copy",
+    "where": "copy x2: \"Works inside Claude. ...\", \"Real typing is uneven...\"",
+    "exact": false
+   }
+  ],
+  "crashed": [],
+  "seconds": {
+   "consistency": 69,
+   "layout": 12
+  }
+ },
+ "open": [],
+ "waived": [
+  {
+   "check": "cta",
+   "where": "section#try",
+   "msg": "the hero has no button (the nav's does not count)",
+   "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "cta"
+   ],
+   "wheres": [
+    "section#try"
+   ],
+   "reason": "the user asked for the working editor in the hero; its Roll again and Copy text buttons are the hero's actions, but the checker reads the editor as a drawn mock and skips buttons inside it"
+  },
+  {
+   "check": "moment-none",
+   "where": "(the page)",
+   "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+   "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "moment-none"
+   ],
+   "wheres": [
+    "(the page)"
+   ],
+   "reason": "the user asked for a React and Tailwind build with no kit JavaScript; the checker only counts a moment run by the kit's moments.js loader, so the dealt counter-rolls moment cannot be mounted"
+  }
+ ],
+ "warnCount": 13,
+ "at": "2026-11-11T11:51:35.119Z"
+}

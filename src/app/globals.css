@@ -1,51 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --paper: #eef1f4;
-  --surface: #ffffff;
-  --ink: #16202b;
-  --muted: #5b6877;
-  --line: #cdd5dd;
-  --marker: #ffe14d;
-  --action: #2a4fd0;
+@theme inline {
+  --color-paper: #ffffff;
+  --color-surface: #f6f6f4;
+  --color-ink: #141414;
+  --color-muted: #6b6b68;
+  --color-line: #e7e7e3;
+  --color-marker: #fde68a;
+
+  --font-display: var(--font-gabarito), system-ui, sans-serif;
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+
+  --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #12181f;
-    --surface: #1b232d;
-    --ink: #e8edf2;
-    --muted: #9aa7b5;
-    --line: #323d4a;
-    --action: #8fa8ff;
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+/* the page's one container: 1280 wide on a 1440 screen, 48px gutters on a tablet, 24 on a phone */
+@utility wrap {
+  width: min(100% - 160px, 1280px);
+  margin-inline: auto;
+  @media (max-width: 1023px) { width: calc(100% - 96px); }
+  @media (max-width: 639px) { width: calc(100% - 48px); }
+}
+
+/* a section is one screen (--hm: 2 for two on a phone), padded below the fixed header. On a tall
+   desktop window it is exactly that; anywhere smaller it is at least that and grows with its content,
+   so nothing is ever clipped. */
+@utility screen {
+  display: flex;
+  min-height: 100svh;
+  padding-top: 120px;
+  padding-bottom: 72px;
+  & > .wrap { display: flex; flex-direction: column; min-height: 0; }
+  @media (min-width: 1024px) and (min-height: 760px) { height: 100svh; }
+  @media (max-width: 639px) {
+    min-height: calc(var(--hm, 1) * 100svh);
+    padding-top: 80px;
+    padding-bottom: 48px;
   }
 }
 
-@theme inline {
-  --color-paper: var(--paper);
-  --color-surface: var(--surface);
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-line: var(--line);
-  --color-marker: var(--marker);
-  --color-action: var(--action);
-  --font-sans: var(--font-bricolage);
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  scroll-padding-top: 0;
 }
 
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-bricolage), system-ui, sans-serif;
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
 :focus-visible {
-  outline: 2px solid var(--action);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
+/* a slip in the typed version */
 mark {
-  background: var(--marker);
-  color: #16202b;
+  background: var(--color-marker);
+  color: inherit;
   border-radius: 3px;
   padding: 0 2px;
 }

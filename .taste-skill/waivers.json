@@ -1,0 +1,12 @@
+[
+  {
+    "check": "moment-none",
+    "target": "(the page)",
+    "reason": "the user asked for a React and Tailwind build with no kit JavaScript; the checker only counts a moment run by the kit's moments.js loader, so the dealt counter-rolls moment cannot be mounted"
+  },
+  {
+    "check": "cta",
+    "target": "section#try",
+    "reason": "the user asked for the working editor in the hero; its Roll again and Copy text buttons are the hero's actions, but the checker reads the editor as a drawn mock and skips buttons inside it"
+  }
+]
