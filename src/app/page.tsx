@@ -1,76 +1,59 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { humanize, PRESETS, type PresetName } from "@/lib/humanize";
 
 const SAMPLE =
-  "Hey, I finally finished the comparison of the design skills. I tested each one on the same landing page prompt, and honestly the results were pretty different. The taste skill produced the cleanest layout, but it struggled with the typography. I think the frontend design skill was the most consistent overall. I will send you the full report tomorrow, because I still need to clean up the screenshots. Let me know if you want to jump on a quick call this week.";
+  "Hey, I finally finished the comparison of the design skills. I tested each one on the same landing page prompt, and honestly the results were pretty different. The taste skill produced the cleanest layout, but it did not handle the typography well. I think the frontend design skill was the most consistent overall. I will send you the full report tomorrow, because I still need to clean up the screenshots. Let me know if you want to jump on a quick call this week.";
 
 const presetNames = Object.keys(PRESETS) as PresetName[];
 const box = "min-h-72 flex-1 rounded-lg border border-line bg-surface p-4 text-base leading-7";
+const noSubscription = () => () => {};
+
+function Command({ children }: { children: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="mt-2 flex items-start gap-3 rounded-lg border border-line bg-surface p-3">
+      <pre className="flex-1 font-mono text-sm break-all whitespace-pre-wrap">{children}</pre>
+      <button
+        onClick={async () => {
+          await navigator.clipboard.writeText(children);
+          setCopied(true);
+        }}
+        className="shrink-0 text-sm font-medium underline"
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
+}
 
 export default function Home() {
   const [text, setText] = useState(SAMPLE);
-  const [samples, setSamples] = useState("");
   const [style, setStyle] = useState<PresetName>("message");
-  // one style drives both steps: the AI's tone and how often each slip appears
-  const rates = PRESETS[style].rates;
-
-  // step 1: AI rewrite. null until the AI has run on the current text.
-  const [rewrite, setRewrite] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  // step 2: slips
   const [seed, setSeed] = useState(4);
   const [random, setRandom] = useState(true);
   const [level, setLevel] = useState(0.4);
   const [copied, setCopied] = useState(false);
 
-  const source = rewrite ?? text;
+  // the address this page is served from, so the commands below can be pasted as they are
+  const origin = useSyncExternalStore(
+    noSubscription,
+    () => window.location.origin,
+    () => "https://your-domain",
+  );
+  const mcpUrl = `${origin}/api/mcp`;
+
   const result = useMemo(
-    () => humanize(source, { seed, sloppiness: random ? undefined : level, rates }),
-    [source, seed, random, level, rates],
+    () => humanize(text, { seed, sloppiness: random ? undefined : level, rates: PRESETS[style].rates }),
+    [text, seed, random, level, style],
   );
 
-  // the humanizer never touches whitespace, so tokens line up one to one
-  const before = source.split(/(\s+)/);
+  // slips never touch whitespace, so the tokens line up one to one
+  const before = result.clean.split(/(\s+)/);
   const after = result.text.split(/(\s+)/);
-  const changes = after.filter((t, i) => t !== before[i]).length;
-
-  async function runRewrite() {
-    setBusy(true);
-    setError("");
-    try {
-      const res = await fetch("/api/rewrite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, style, samples }),
-      });
-      if (!res.ok || !res.body) throw new Error((await res.json()).error);
-
-      // show the rewrite as it streams in; step 3 follows along
-      setSeed(Math.floor(Math.random() * 2 ** 31));
-      setCopied(false);
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let streamed = "";
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        streamed += decoder.decode(value, { stream: true });
-        setRewrite(streamed);
-      }
-      if (!streamed.trim()) {
-        setRewrite(null);
-        throw new Error("OpenAI returned an empty rewrite. Try again.");
-      }
-    } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : "The rewrite failed. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
+  const slips = after.filter((t, i) => t !== before[i]).length;
+  const reworded = result.clean !== text;
 
   function roll() {
     setSeed(Math.floor(Math.random() * 2 ** 31));
@@ -83,13 +66,13 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20">
+    <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-20">
       <h1 className="max-w-3xl text-5xl leading-[1.02] font-semibold tracking-tight sm:text-7xl">
         looks like i typed it,, not a robot
       </h1>
       <p className="mt-6 max-w-xl text-lg text-muted">
-        Two steps. First an AI rewrites the wording so it sounds like a person. Then plain random
-        numbers add the slips of real typing, which is the part AI is bad at.
+        Paste clean text and get it back the way a person types it: contractions, lowercase starts,
+        a missing period, the odd typo. No AI, just random numbers, so it is free.
       </p>
 
       <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
@@ -134,10 +117,10 @@ export default function Home() {
         </label>
       </div>
       <p className="mt-3 text-sm text-muted">
-        The style sets the AI&apos;s tone and which slips appear. The mess level sets how many.
+        The style sets which slips appear. The mess level sets how many.
       </p>
 
-      <ol className="mt-6 grid gap-6 lg:grid-cols-3">
+      <ol className="mt-6 grid gap-6 lg:grid-cols-2">
         <li className="flex flex-col gap-2">
           <label htmlFor="input" className="font-medium">
             1. Your text
@@ -147,59 +130,17 @@ export default function Home() {
             value={text}
             onChange={(e) => {
               setText(e.target.value);
-              setRewrite(null);
               setCopied(false);
             }}
             placeholder="Paste or type the text you want to humanize"
             className={`${box} resize-y`}
           />
-          <button
-            onClick={runRewrite}
-            disabled={busy || !text.trim()}
-            className="rounded-lg bg-ink px-5 py-2.5 font-medium text-paper hover:opacity-90 disabled:opacity-40"
-          >
-            {busy ? "Rewriting" : rewrite === null ? "Rewrite with AI" : "Rewrite again"}
-          </button>
-          <p className="text-sm text-muted">Sends your text to OpenAI.</p>
         </li>
 
         <li className="flex flex-col gap-2">
-          <label htmlFor="rewrite" className="font-medium">
-            2. AI rewrite
-          </label>
-          {rewrite === null ? (
-            <p className={`${box} text-muted`} aria-live="polite">
-              {busy
-                ? "Waiting for OpenAI"
-                : "Not run yet. Until you rewrite with AI, step 3 works on your original text."}
-            </p>
-          ) : (
-            <textarea
-              id="rewrite"
-              value={rewrite}
-              readOnly={busy}
-              onChange={(e) => {
-                setRewrite(e.target.value);
-                setCopied(false);
-              }}
-              className={`${box} resize-y`}
-            />
-          )}
-          {error ? (
-            <p role="alert" className="text-sm font-medium text-[#b3261e] dark:text-[#ff9b93]">
-              {error}
-            </p>
-          ) : (
-            rewrite !== null && (
-              <p className="text-sm text-muted">Clean on purpose. You can edit it before step 3.</p>
-            )
-          )}
-        </li>
-
-        <li className="flex flex-col gap-2">
-          <h2 className="font-medium">3. Typed version</h2>
+          <h2 className="font-medium">2. Typed version</h2>
           <p aria-live="polite" className={`${box} whitespace-pre-wrap`}>
-            {source.trim() ? (
+            {text.trim() ? (
               after.map((t, i) => (t === before[i] ? t : <mark key={i}>{t}</mark>))
             ) : (
               <span className="text-muted">Your text shows up here once you add some.</span>
@@ -214,34 +155,68 @@ export default function Home() {
             </button>
             <button
               onClick={copy}
-              disabled={!source.trim()}
-              className="flex-1 rounded-lg border border-ink px-5 py-2.5 font-medium hover:bg-surface disabled:opacity-40"
+              disabled={!text.trim()}
+              className="flex-1 rounded-lg bg-ink px-5 py-2.5 font-medium text-paper hover:opacity-90 disabled:opacity-40"
             >
               {copied ? "Copied" : "Copy text"}
             </button>
           </div>
           <p className="text-sm text-muted">
-            {changes === 0
-              ? "Nothing changed this time. Real typing is often clean, so that happens on purpose."
-              : `${changes} ${changes === 1 ? "word" : "words"} changed, marked in yellow. Runs in your browser.`}
+            {slips === 0
+              ? "No slips this time. Real typing is often clean, so that happens on purpose."
+              : `${slips} ${slips === 1 ? "slip" : "slips"}, marked in yellow.`}
+            {reworded && " Contractions and other wording fixes are not marked."}
           </p>
         </li>
       </ol>
 
-      <details className="mt-8 border-t border-line pt-6">
-        <summary className="cursor-pointer font-medium">Make the AI sound like me</summary>
-        <label htmlFor="samples" className="mt-3 block max-w-xl text-muted">
-          Paste 5 to 10 real messages you have written. The AI copies their style, not their
-          subject. They are sent to OpenAI with your text.
-        </label>
-        <textarea
-          id="samples"
-          value={samples}
-          onChange={(e) => setSamples(e.target.value)}
-          placeholder="One message per line"
-          className="mt-3 min-h-40 w-full max-w-2xl resize-y rounded-lg border border-line bg-surface p-4 leading-7"
-        />
-      </details>
+      <section className="mt-16 border-t border-line pt-10">
+        <h2 className="text-3xl font-semibold tracking-tight">Three ways to use it</h2>
+
+        <div className="mt-8 grid gap-10 lg:grid-cols-3">
+          <div>
+            <h3 className="text-lg font-medium">1. On this page</h3>
+            <p className="mt-2 text-muted">
+              Paste your text above, pick a style and copy the result. Roll again until you like
+              it. This runs in your browser, so your text is not sent anywhere.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-medium">2. In your AI assistant</h3>
+            <p className="mt-2 text-muted">
+              Add this site as an MCP server. Your assistant writes the text, then passes it
+              through the same function. In Claude Code:
+            </p>
+            <Command>{`claude mcp add --transport http humanize-typing ${mcpUrl}`}</Command>
+            <p className="mt-4 text-muted">
+              In the Claude app, open Settings, then Connectors, add a custom connector and paste
+              this address. Other MCP apps take the same address.
+            </p>
+            <Command>{mcpUrl}</Command>
+            <p className="mt-4 text-muted">Then ask: &quot;humanize this message&quot;.</p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-medium">3. As a Claude Code skill</h3>
+            <p className="mt-2 text-muted">
+              The skill makes Claude rewrite the text in your voice first, then call the MCP
+              server from step 2. Add the server, then the skill:
+            </p>
+            <Command>{`mkdir -p ~/.claude/skills/humanize-typing && curl -fsS ${origin}/humanize-typing/SKILL.md -o ~/.claude/skills/humanize-typing/SKILL.md`}</Command>
+            <p className="mt-4 text-muted">
+              To sound like yourself, save 5 to 10 real messages you wrote as voice-samples.md in
+              the same folder.
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-10 max-w-2xl text-sm text-muted">
+          About your text: ways 2 and 3 send it to this server, which changes it in memory and
+          sends it back. It is not stored or logged. To keep it on your own machine, run the same
+          server locally. The README shows how.
+        </p>
+      </section>
     </main>
   );
 }

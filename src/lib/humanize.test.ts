@@ -1,12 +1,12 @@
 // Run with: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { humanize, PRESETS, type Rates } from "./humanize.ts";
+import { humanize, loosen, PRESETS, type Rates } from "./humanize.ts";
 
 const text =
   "Hey, I finished the comparison. See https://example.com/report.html or mail me@example.com about 2024 numbers.\n\nI think the second one was the most consistent overall. Let me know.";
 
-const OFF: Rates = { typo: 0, lowerI: 0, lowerStart: 0, doubleComma: 0, dropPeriod: 0, runOn: 0 };
+const OFF: Rates = { typo: 0, dropApostrophe: 0, lowerI: 0, lowerStart: 0, doubleComma: 0, dropPeriod: 0, runOn: 0 };
 // one slip always on, everything else off
 const only = (key: keyof Rates) => ({ sloppiness: 1, rates: { ...OFF, [key]: 1 } });
 const seeds = Array.from({ length: 200 }, (_, i) => i);
@@ -59,6 +59,57 @@ test("dropPeriod only removes sentence-ending periods", () => {
 
 test("dropPeriod keeps question and exclamation marks", () => {
   assert.equal(humanize("Really? Yes!", only("dropPeriod")).text, "Really? Yes!");
+});
+
+test("loosen contracts, keeping case and leaving sentence ends and emphasis alone", () => {
+  assert.equal(loosen("I will not go. It is fine."), "I won't go. It's fine.");
+  assert.equal(loosen("Do not worry, we are ready and you cannot fail."), "Don't worry, we're ready and you can't fail.");
+  assert.equal(loosen("Yes, it is. Here I am."), "Yes, it is. Here I am.");
+  assert.equal(loosen("DO NOT touch it."), "DO NOT touch it.");
+  assert.equal(loosen("Please let us know."), "Please let us know.");
+});
+
+test("loosen swaps stiff words and strips AI openers", () => {
+  assert.equal(loosen("Additionally, we utilize it in order to save time."), "Also, we use it to save time.");
+  assert.equal(loosen("Certainly! Here it is."), "Here it is.");
+  assert.equal(loosen("Hi Sam,\n\nI hope this email finds you well. I have news."), "Hi Sam,\n\nI have news.");
+});
+
+test("loosen straightens quotes and removes em dashes", () => {
+  assert.equal(loosen("It’s “done” — mostly…"), "It's \"done\", mostly...");
+  assert.equal(loosen("one—two"), "one, two");
+});
+
+test("loosen leaves links, emails and paths alone", () => {
+  const safe = "See https://example.com/utilize/do-not or mail utilize@example.com about src/cannot/x.";
+  assert.equal(loosen(safe), safe);
+});
+
+test("the result carries the loosened text, and slips never touch its whitespace", () => {
+  const stiff = "I do not know. It is what we will utilize.";
+  for (const seed of seeds) {
+    const out = humanize(stiff, { seed, sloppiness: 1, rates: PRESETS.text.rates });
+    assert.equal(out.clean, "I don't know. It's what we'll use.");
+    assert.deepEqual(out.text.match(/\s+/g), out.clean.match(/\s+/g));
+  }
+});
+
+test("dropApostrophe only removes apostrophes inside words", () => {
+  assert.equal(
+    humanize("I don't think it's Sam's. 'Quoted' stays.", only("dropApostrophe")).text,
+    "I dont think its Sams. 'Quoted' stays.",
+  );
+});
+
+test("lowerI and dropApostrophe together give im, not Im", () => {
+  const rates = { ...OFF, lowerI: 1, dropApostrophe: 1 };
+  assert.equal(humanize("I am sure I'm right.", { sloppiness: 1, rates }).text, "im sure im right.");
+});
+
+test("known misspellings show up, and odd words do not crash", () => {
+  const outs = new Set(seeds.map((seed) => humanize("we really do", { seed, ...only("typo") }).text));
+  assert.ok(outs.has("we realy do"));
+  for (const seed of seeds) humanize("constructor prototype valueof", { seed, ...only("typo") });
 });
 
 test("an ellipsis is never cut short or turned into a run-on", () => {
